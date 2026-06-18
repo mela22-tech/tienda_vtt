@@ -3,6 +3,8 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
     <head th:replace="~{general/plantilla :: head}"/>
+        <link rel="stylesheet" href="../../static/css/estilos.css" type="text/css"/>
+
 
     <body>
         <!-- fragmento 1 para Agregar categoria en ventana modal -->
@@ -152,7 +154,7 @@
             </div>
         </section>
 
-        <!-- 4 fragmento que se utiliza para confirmar que se desea eliminar una categoria -->
+     <!-- 4 fragmento que se utiliza para confirmar que se desea eliminar una categoria -->
         <section th:fragment="confirmarEliminar">
             <div class="modal fade" 
                  id="confirmModal" 
@@ -185,6 +187,20 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ↓ Esto es lo que se agrega -->
+            <script>
+                const confirmModal = document.getElementById('confirmModal');
+                confirmModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const id = button.getAttribute('data-bs-id');
+                    const descripcion = button.getAttribute('data-bs-descripcion');
+
+                    document.getElementById('modalId').value = id;
+                    document.getElementById('modalDescripcion').textContent = descripcion;
+                });
+            </script>
+
         </section>
 
     </body>
