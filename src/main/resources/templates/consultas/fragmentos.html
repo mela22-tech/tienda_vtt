@@ -1,0 +1,145 @@
+<!-- Fragmento 1 para mostrar las categorías en tabs -->
+<section th:fragment="tabs" class="py-3 mb-4">
+    <div class="d-flex justify-content-center px-5">
+        <ul class="nav nav-underline">
+            <li class="nav-item">
+                <a th:href="@{/}"
+                   class="nav-link"
+                   aria-current="page">
+                    [[#{pruebas.todas}]]
+                </a>
+            </li>
+
+            <li th:each="c : ${categorias}" class="nav-item">
+                <a th:href="@{/consultas/{id}(id=${c.idCategoria})}"
+                   class="nav-link"
+                   th:classappend="${idCategoriaActual != null and idCategoriaActual.equals(c.idCategoria)} ? ' active'">
+                    [[${c.descripcion}]]
+                </a>
+            </li>
+        </ul>
+    </div>
+</section>
+
+<!-- Fragmento 2 para el listado de productos en tarjetas -->
+<section th:fragment="tarjetas" class="container p-3">
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4">
+
+        <div th:each="p : ${productos}" class="col">
+
+            <div class="card h-100 shadow">
+
+                <div class="d-flex justify-content-center align-items-center bg-light p-3"
+                     style="height: 200px;">
+
+                    <img th:src="${p.rutaImagen}"
+                         th:alt="${p.descripcion}"
+                         class="img-fluid"
+                         style="max-height: 100%; object-fit: contain;">
+
+                </div>
+
+                <div class="card-header bg-white">
+                    <h5 class="card-title text-center text-truncate mb-0">
+                        [[${p.descripcion}]]
+                    </h5>
+                </div>
+
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text text-muted mb-auto text-truncate">
+                        [[${p.detalle}]]
+                    </p>
+                </div>
+                <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                    <div class="fw-bold">
+                        <span class="text-success h5">[[${#numbers.formatCurrency(p.precio)}]]</span>
+                        <span th:if="${p.existencias > 0}" class="badge text-bg-success ms-2">[[${p.existencias}]] unidades</span>
+                        <span th:unless="${p.existencias > 0}" class="badge text-bg-danger ms-2">Agotado</span>
+                    </div>
+                    <form th:action="@{/carrito/agregar}" th:method="POST" class="d-inline">
+                        <input type="hidden" th:value="${p.idProducto}" name="idProducto"/>
+                        <button type="button" 
+                                class="btn btn-sm btn-primary" 
+                                th:disabled="${p.existencias == 0}"
+                                onclick="addCart(this.form)">
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Fragmento 3 para mostrar las consultas eb form's -->
+<section th:fragment="consultas" class="row row-cols-4 p-2">
+    <div th:replace="~{consultas/fragmentos :: frmConsulta('primary',#{consultas.derivadas},'/consultas/consultaDerivada')}"/>
+    <div th:replace="~{consultas/fragmentos :: frmConsulta('warning',#{consultas.jpql},'/consultas/consultaJPQL')}"/>
+    <div th:replace="~{consultas/fragmentos :: frmConsulta('success',#{consultas.sql},'/consultas/consultaSQL')}"/>
+    <div th:replace="~{consultas/fragmentos :: frmConsultaExistencias('dark',#{consultas.existencias},'/consultas/consultaExistencias')}"/>
+</section>
+
+<!-- fragmento 4 para mostrar el formulario de consulta -->
+<section th:fragment="frmConsulta(frmColor, frmText, frmUrl)">
+    <form method="post" class='was-validated'
+          th:action='@{${frmUrl}}'>
+        <div class='card p-3'>
+            <div class='card-header text-center text-white'
+                 th:classappend="${'bg-'+frmColor}">
+                <h5>[[${frmText}]]</h5>
+            </div>
+            <div class='card-body'>
+                <div class='mb-3'>
+                    <label>[[#{consultas.precio.inferior}]]</label>
+                    <input type='number' name='precioInf'
+                           th:value='${precioInf}' required
+                           class='form-control' min='0'/>
+                </div>
+                <div class='mb-3'>
+                    <label>[[#{consultas.precio.superior}]]</label>
+                    <input type='number' name='precioSup'
+                           th:value='${precioSup}' required
+                           class='form-control' min='0'/>
+                </div>
+            </div>
+            <div class='card-footer text-center'>
+                <button type='submit' class='btn text-white'
+                        th:classappend="${'btn-'+frmColor}">
+                    <i class="fa-solid fa-magnifying-glass"></i> [[${frmText}]]
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+<!-- fragmento 5 para practica 2 -->
+<section th:fragment="frmConsultaExistencias(frmColor, frmText, frmUrl)">
+    <form method="post" class='was-validated'
+          th:action='@{${frmUrl}}'>
+        <div class='card p-3'>
+            <div class='card-header text-center text-white'
+                 th:classappend="${'bg-'+frmColor}">
+                <h5>[[${frmText}]]</h5>
+            </div>
+            <div class='card-body'>
+                <div class='mb-3'>
+                    <label>[[#{consultas.existencias.maximo}]]</label>
+                    <input type='number' name='existencias'
+                           th:value='${existencias}' required
+                           class='form-control' min='0'/>
+                </div>
+            </div>
+            <div class='card-footer text-center'>
+                <button type='submit' class='btn text-white'
+                        th:classappend="${'btn-'+frmColor}">
+                    <i class="fa-solid fa-magnifying-glass"></i> [[${frmText}]]
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
