@@ -13,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ProductoService {
 
-    // El repositorio es final para asegurar la inmutabilidad
     private final ProductoRepository productoRepository;
+
     private final FirebaseStorageService firebaseStorageService;
 
     public ProductoService(ProductoRepository productoRepository, FirebaseStorageService firebaseStorageService) {
@@ -24,46 +24,74 @@ public class ProductoService {
 
     @Transactional(readOnly = true)
     public List<Producto> getProductos(boolean activo) {
-        if (activo) { //Sólo activos...            
+        if (activo) { // Solo se quieren las productos activas
             return productoRepository.findByActivoTrue();
         }
+
         return productoRepository.findAll();
     }
-    //Recupera en un registro de producto -si existe-
+
+    // Recupera en un registro de producto -si existe-
     @Transactional(readOnly = true)
     public Optional<Producto> getProducto(Integer idProducto) {
         return productoRepository.findById(idProducto);
     }
-    //Si Producto, trae un idProducto... se actualiza el registro, sino se crea
+
+    // Si producto, trae un iDproducto, se actualiza el registro, sino se crea
     @Transactional
     public void save(Producto producto, MultipartFile imagenFile) {
-        producto = productoRepository.save(producto);
-        if (!imagenFile.isEmpty()) { //Si no está vacío... pasaron una imagen...            
+        //se salva la producto 
+        productoRepository.save(producto);
+        if (!imagenFile.isEmpty()) { // nos pasan una imagen
             try {
-                String rutaImagen = firebaseStorageService.uploadImage(
-                        imagenFile, "producto",
-                        producto.getIdProducto());
-                producto.setRutaImagen(rutaImagen);
+                String ruta = firebaseStorageService.uploadImage(
+                        imagenFile,
+                        "producto", producto.getIdProducto());
+                producto.setRutaImagen(ruta);
                 productoRepository.save(producto);
-            } catch (IOException e) {
 
+            } catch (IOException e) {
             }
         }
     }
+// si idproducto exite se elimina ... si no tiene productos asociados
 
     @Transactional
     public void delete(Integer idProducto) {
-        // Verifica si la categoría existe antes de intentar eliminarlo
+// Se valida que la producto exista
         if (!productoRepository.existsById(idProducto)) {
-            // Lanza una excepción para indicar que el usuario no fue encontrado
-            throw new IllegalArgumentException("La categoría con ID " + idProducto + " no existe.");
+            // se lanza una exception para indicarle al usuario que no se elimino
+            throw new IllegalArgumentException("La producto con ID " + idProducto + " no exite!");
         }
         try {
             productoRepository.deleteById(idProducto);
+
         } catch (DataIntegrityViolationException e) {
-            // Lanza una nueva excepción para encapsular el problema de integridad de datos
-            throw new IllegalStateException("No se puede eliminar la producto. Tiene datos asociados.", e);
+            throw new IllegalStateException("No se puede eliminar la producto, tiene productos asociados");
         }
+
+    }
+
+    // consulta derivada
+    @Transactional(readOnly = true)
+    public List<Producto> consultaDerivada(double precioInf, double precioSup) {
+        return productoRepository.findByPrecioBetweenOrderByPrecioAsc(precioInf, precioSup);
+    }
+
+    // Metodo de servicio que utiliza la consulta jpql
+    @Transactional(readOnly = true)
+    public List<Producto> consultaJPQL(double precioInf, double precioSup) {
+        return productoRepository.consultaJPQL(precioInf, precioSup);
+    }
+
+    // Metodo de servicio que utiliza la consulta sql
+    @Transactional(readOnly = true)
+    public List<Producto> consultaSQL(double precioInf, double precioSup) {
+        return productoRepository.consultaSQL(precioInf, precioSup);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Producto> consultaExistencias(Integer existencias) {
+        return productoRepository.findByExistenciasLessThanEqualOrderByExistenciasAsc(existencias);
     }
 }
- 
