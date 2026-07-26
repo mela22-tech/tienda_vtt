@@ -3,8 +3,6 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
     <head th:replace="~{general/plantilla :: head}"/>
-    <link rel="stylesheet" href="../../static/css/estilos.css" type="text/css"/>
-
 
     <body>
         <!-- fragmento 1 para Agregar producto en ventana modal -->
@@ -34,9 +32,8 @@
 
                                 <div class='mb-3'>
                                     <label>[[#{producto.categoria}]]</label>
-                                    <select name="idCategoria" class="form-select" aria-label="Default select example">
-                                        <option selected>Open this select menu</option>
-                                        <option th:each="c : ${categorias}" 
+                                    <select name="categoria.idCategoria" class="form-select" aria-label="Default select example">
+                                        <option th:each="c : ${categorias}"
                                                 th:value="${c.idCategoria}">
                                             [[${c.descripcion}]]
                                         </option>
@@ -44,7 +41,7 @@
                                 </div>
                                 <div class='mb-3'>
                                     <label>[[#{producto.descripcion}]]</label>
-                                    <input type="text" name='descripcion'maxlength="50" class='form-control' required="true"/>
+                                    <input type="text" name='descripcion' maxlength="50" class='form-control' required="true"/>
                                 </div>
                                 <div class='mb-3'>
                                     <label>[[#{producto.detalle}]]</label>
@@ -56,9 +53,8 @@
                                 </div>
                                 <div class='mb-3'>
                                     <label>[[#{producto.existencias}]]</label>
-                                    <input type="number" name='existencias'min="0" class='form-control' required="true"/>
+                                    <input type="number" name='existencias' min="0" class='form-control' required="true"/>
                                 </div>
-
                                 <div class='mb-3'>
                                     <label>[[#{producto.activo}]]</label>
                                     <input type="checkbox" name='activo' class='form-check-input'/>
@@ -112,9 +108,9 @@
                                             <td class="text-center">[[${c.existencias}]]</td>
                                             <td class="text-end">[[${#numbers.formatCurrency(c.precio*c.existencias)}]]</td>
                                             <td><img th:src="@{${c.rutaImagen}}" alt="noData" height="75"/></td>
-                                            <td>[[${c.idCategoria}]]</td>
+                                            <td>[[${c.categoria.descripcion}]]</td>
                                             <td th:text="${c.activo} ? 'Activa':'Inactiva'"></td>
-                                            <td>
+                                            <td sec:authorize="hasRole('ROLE_ADMIN')">
                                                 <button type="button" class="btn btn-danger"
                                                         data-bs-toggle="modal" data-bs-target="#confirmModal"
                                                         th:data-bs-id="${c.idProducto}"
@@ -164,13 +160,17 @@
                         <div class="row">
                             <div class="col">
                                 <div class="card">
-                                    <div class="card-header"><h4>[[#{accion.actualizar}]]</h4>
-                                    </div>
+                                    <div class="card-header"><h4>[[#{accion.actualizar}]]</h4></div>
                                     <div class="card-body">
 
                                         <div class='mb-3'>
                                             <label>[[#{producto.categoria}]]</label>
-                                            <input type="number" name='idCategoria' th:field="*{idCategoria}" class='form-control' required="true"/>
+                                            <select name="idCategoria"  th:field="*{categoria.idCategoria}" class="form-select" aria-label="Default select example">                                
+                                                <option th:each="c : ${categorias}" 
+                                                        th:value="${c.idCategoria}">
+                                                    [[${c.descripcion}]]
+                                                </option>
+                                            </select>
                                         </div>
                                         <div class='mb-3'>
                                             <label>[[#{producto.descripcion}]]</label>
@@ -178,7 +178,7 @@
                                         </div>
                                         <div class='mb-3'>
                                             <label>[[#{producto.detalle}]]</label>
-                                            <textarea name='detalle'th:field="*{detalle}" rows="3" class='form-control'></textarea>
+                                            <textarea name='detalle' th:field="*{detalle}" rows="3" class='form-control'></textarea>
                                         </div>
                                         <div class='mb-3'>
                                             <label>[[#{producto.precio}]]</label>
@@ -187,7 +187,8 @@
                                         <div class='mb-3'>
                                             <label>[[#{producto.existencias}]]</label>
                                             <input type="number" name='existencias' th:field="*{existencias}" min="0" class='form-control' required="true"/>
-                                        </div>                        
+                                        </div>
+
 
                                         <div class="mb-3">
                                             <label for="activo">[[#{producto.activo}]]</label>
@@ -242,20 +243,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- ↓ Esto es lo que se agrega -->
-            <script>
-                const confirmModal = document.getElementById('confirmModal');
-                confirmModal.addEventListener('show.bs.modal', function (event) {
-                    const button = event.relatedTarget;
-                    const id = button.getAttribute('data-bs-id');
-                    const descripcion = button.getAttribute('data-bs-descripcion');
-
-                    document.getElementById('modalId').value = id;
-                    document.getElementById('modalDescripcion').textContent = descripcion;
-                });
-            </script>
-
         </section>
 
     </body>
